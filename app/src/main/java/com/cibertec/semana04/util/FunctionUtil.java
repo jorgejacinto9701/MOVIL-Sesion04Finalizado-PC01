@@ -10,7 +10,7 @@ public class FunctionUtil {
 	public static int ESTADO_INACTIVO = 0;
 
 	public static String getFechaActualStringDateTime() {
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSSX");
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		return sdf.format(new Date());
 	}
 
@@ -23,7 +23,7 @@ public class FunctionUtil {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		return sdf.format(date);
 	}
-	
+
 	public static String getFechaString(Date date) {
 		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 		return sdf.format(date);

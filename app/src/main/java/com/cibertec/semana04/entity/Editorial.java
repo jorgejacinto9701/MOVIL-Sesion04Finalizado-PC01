@@ -3,12 +3,13 @@ package com.cibertec.semana04.entity;
 public class Editorial {
 
     private int idEditorial;
-    private String nombre;
+    private String razonSocial;
     private String direccion;
-    private String pais;
+    private String ruc;
     private String fechaCreacion;
     private String fechaRegistro;
     private int estado;
+    private Pais pais;
 
     public int getIdEditorial() {
         return idEditorial;
@@ -18,12 +19,12 @@ public class Editorial {
         this.idEditorial = idEditorial;
     }
 
-    public String getNombre() {
-        return nombre;
+    public String getRazonSocial() {
+        return razonSocial;
     }
 
-    public void setNombre(String nombre) {
-        this.nombre = nombre;
+    public void setRazonSocial(String razonSocial) {
+        this.razonSocial = razonSocial;
     }
 
     public String getDireccion() {
@@ -34,12 +35,12 @@ public class Editorial {
         this.direccion = direccion;
     }
 
-    public String getPais() {
-        return pais;
+    public String getRuc() {
+        return ruc;
     }
 
-    public void setPais(String pais) {
-        this.pais = pais;
+    public void setRuc(String ruc) {
+        this.ruc = ruc;
     }
 
     public String getFechaCreacion() {
@@ -64,5 +65,13 @@ public class Editorial {
 
     public void setEstado(int estado) {
         this.estado = estado;
+    }
+
+    public Pais getPais() {
+        return pais;
+    }
+
+    public void setPais(Pais pais) {
+        this.pais = pais;
     }
 }

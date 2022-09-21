@@ -1,19 +1,26 @@
 package com.cibertec.semana04;
 
+
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.cibertec.semana04.entity.Editorial;
+import com.cibertec.semana04.entity.Pais;
 import com.cibertec.semana04.service.ServiceEditorial;
+import com.cibertec.semana04.service.ServicePais;
 import com.cibertec.semana04.util.ConnectionRest;
 import com.cibertec.semana04.util.FunctionUtil;
-import com.cibertec.semana04.util.ValidacionUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -21,77 +28,116 @@ import retrofit2.Response;
 
 public class MainActivity extends AppCompatActivity {
 
-    EditText txtNombre, txtDireccion, txtFechaCreacion;
     Spinner spnPais;
-    Button btnEnviar;
-    ServiceEditorial service;
+    ArrayAdapter<String> adaptador;
+    ArrayList<String> paises = new ArrayList<String>();
+
+    //Servicio
+    ServiceEditorial serviceEditorial;
+    ServicePais servicePais;
+
+    //Componentes del formulario
+    Button btnRegistrar;
+    EditText txtRazonSoc, txtDireccion, txtRuc, txtFechaCreacion;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        txtNombre = findViewById(R.id.txtRegEdiNombre);
-        txtDireccion = findViewById(R.id.txtRegEdiDirecccion);
+        servicePais = ConnectionRest.getConnecion().create(ServicePais.class);
+        serviceEditorial = ConnectionRest.getConnecion().create(ServiceEditorial.class);
+
+        //Para el adapatador
+        adaptador = new ArrayAdapter<String>(this, androidx.appcompat.R.layout.support_simple_spinner_dropdown_item, paises);
         spnPais = findViewById(R.id.spnRegEdiPais);
+        spnPais.setAdapter(adaptador);
+
+        cargaPais();
+
+        txtRazonSoc = findViewById(R.id.txtRegEdiRazonSocial);
+        txtDireccion = findViewById(R.id.txtRegEdiDirecccion);
+        txtRuc = findViewById(R.id.txtRegEdiRuc);
         txtFechaCreacion = findViewById(R.id.txtRegEdiFechaCreacion);
-        btnEnviar = findViewById(R.id.btnRegEdiEnviar);
-
-        service = ConnectionRest.getConnecion().create(ServiceEditorial.class);
-
-        btnEnviar.setOnClickListener(new View.OnClickListener() {
+        btnRegistrar = findViewById(R.id.btnRegEdiEnviar);
+        btnRegistrar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                 //Todos los datos los recibimos como String
+                 String razSoc = txtRazonSoc.getText().toString();
+                 String dir = txtDireccion.getText().toString();
+                 String ruc = txtRuc.getText().toString();
+                 String fecCre = txtFechaCreacion.getText().toString();
+                 String pais = spnPais.getSelectedItem().toString();
+                 String idPais = pais.split(":")[0];
 
-                String nom = txtNombre.getText().toString();
-                String dir = txtDireccion.getText().toString();
-                String pais = spnPais.getSelectedItem().toString();
-                String fec =  txtFechaCreacion.getText().toString();
+                 Pais objPais = new Pais();
+                 objPais.setIdPais(Integer.parseInt(idPais));
 
-                if (!nom.matches(ValidacionUtil.NOMBRE)){
-                    mensajeAlert("Nombre es de 3 a 30");
-                } else if (!dir.matches(ValidacionUtil.DIRECCION)){
-                    mensajeAlert("Dirección es de 3 a 30");
-                } else if ( spnPais.getSelectedItemPosition() == 0){
-                    mensajeAlert("Seleccione un país");
-                }else if (!fec.matches(ValidacionUtil.FECHA)){
-                    mensajeAlert("La fecha es yyyy-MM-dd");
-                }else{
-                    Editorial obj = new Editorial();
-                    obj.setNombre(nom);
-                    obj.setDireccion(dir);
-                    obj.setPais(pais);
-                    obj.setFechaCreacion(fec);
-                    obj.setFechaRegistro(FunctionUtil.getFechaActualStringDateTime());
-                    obj.setEstado(1);
+                 Editorial objEditorial = new Editorial();
+                 objEditorial.setRazonSocial(razSoc);
+                 objEditorial.setDireccion(dir);
+                 objEditorial.setRuc(ruc);
+                 objEditorial.setFechaCreacion(fecCre);
+                 objEditorial.setFechaRegistro(FunctionUtil.getFechaActualStringDateTime());
+                 objEditorial.setEstado(1);
+                 objEditorial.setPais(objPais);
 
-                    registraEditorial(obj);
-                }
-
-
+                 insertaEditorial(objEditorial);
             }
         });
+
     }
 
-    public void registraEditorial(Editorial obj){
-        Call<Editorial> call =  service.insertaEditorial(obj);
-        call.enqueue(new Callback<Editorial>() {
+    public  void insertaEditorial(Editorial objEditorial){
+
+           Call<Editorial> call = serviceEditorial.insertaEditorial(objEditorial);
+           call.enqueue(new Callback<Editorial>() {
+               @Override
+               public void onResponse(Call<Editorial> call, Response<Editorial> response) {
+                      if (response.isSuccessful()){
+                            Editorial objSalida = response.body();
+                            mensajeAlert(" Registro exitoso  >>> ID >> " + objSalida.getIdEditorial()
+                                  + " >>> Razón Social >>> " +  objSalida.getRazonSocial());
+                      }else{
+                          mensajeAlert(response.toString());
+                      }
+               }
+               @Override
+               public void onFailure(Call<Editorial> call, Throwable t) {
+                   mensajeToast("Error al acceder al Servicio Rest >>> " + t.getMessage());
+               }
+           });
+    }
+
+    public void cargaPais(){
+        Call<List<Pais>> call = servicePais.listaPais();
+        call.enqueue(new Callback<List<Pais>>() {
             @Override
-            public void onResponse(Call<Editorial> call, Response<Editorial> response) {
-                    if (response.isSuccessful()){
-                        Editorial objSalida = response.body();
-                        mensajeAlert("Registro Exitoso " + objSalida.getIdEditorial());
+            public void onResponse(Call<List<Pais>> call, Response<List<Pais>> response) {
+                if (response.isSuccessful()){
+                    List<Pais> lstPaises =  response.body();
+                    for(Pais obj: lstPaises){
+                        paises.add(obj.getIdPais() +":"+ obj.getNombre());
                     }
+                    adaptador.notifyDataSetChanged();
+                }else{
+                    mensajeToast("Error al acceder al Servicio Rest >>> ");
+                }
             }
 
             @Override
-            public void onFailure(Call<Editorial> call, Throwable t) {
-                mensajeAlert("Error " + t.getMessage());
+            public void onFailure(Call<List<Pais>> call, Throwable t) {
+                mensajeToast("Error al acceder al Servicio Rest >>> " + t.getMessage());
             }
         });
-
     }
 
+    public void mensajeToast(String mensaje){
+        Toast toast1 =  Toast.makeText(getApplicationContext(),mensaje, Toast.LENGTH_LONG);
+        toast1.show();
+    }
 
     public void mensajeAlert(String msg){
         AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
@@ -99,4 +145,5 @@ public class MainActivity extends AppCompatActivity {
         alertDialog.setCancelable(true);
         alertDialog.show();
     }
+
 }
