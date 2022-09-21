@@ -18,6 +18,7 @@ import com.cibertec.semana04.service.ServiceEditorial;
 import com.cibertec.semana04.service.ServicePais;
 import com.cibertec.semana04.util.ConnectionRest;
 import com.cibertec.semana04.util.FunctionUtil;
+import com.cibertec.semana04.util.ValidacionUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,22 +70,35 @@ public class MainActivity extends AppCompatActivity {
                  String dir = txtDireccion.getText().toString();
                  String ruc = txtRuc.getText().toString();
                  String fecCre = txtFechaCreacion.getText().toString();
-                 String pais = spnPais.getSelectedItem().toString();
-                 String idPais = pais.split(":")[0];
 
-                 Pais objPais = new Pais();
-                 objPais.setIdPais(Integer.parseInt(idPais));
 
-                 Editorial objEditorial = new Editorial();
-                 objEditorial.setRazonSocial(razSoc);
-                 objEditorial.setDireccion(dir);
-                 objEditorial.setRuc(ruc);
-                 objEditorial.setFechaCreacion(fecCre);
-                 objEditorial.setFechaRegistro(FunctionUtil.getFechaActualStringDateTime());
-                 objEditorial.setEstado(1);
-                 objEditorial.setPais(objPais);
+                 if (!razSoc.matches(ValidacionUtil.TEXTO)){
+                     mensajeToast("La razón social es de 2 a 20 caracteres");
+                 }else if (!dir.matches(ValidacionUtil.DIRECCION)){
+                     mensajeToast("La dirección social es de 3 a 30 caracteres");
+                 }else if (!ruc.matches(ValidacionUtil.RUC)){
+                     mensajeToast("El RUC es 11 dígitos");
+                 }else if (!fecCre.matches(ValidacionUtil.FECHA)){
+                     mensajeToast("La fecha de creación es YYYY-MM-dd");
+                 }else{
+                     String pais = spnPais.getSelectedItem().toString();
+                     String idPais = pais.split(":")[0];
+                     Pais objPais = new Pais();
+                     objPais.setIdPais(Integer.parseInt(idPais));
 
-                 insertaEditorial(objEditorial);
+                     Editorial objEditorial = new Editorial();
+                     objEditorial.setRazonSocial(razSoc);
+                     objEditorial.setDireccion(dir);
+                     objEditorial.setRuc(ruc);
+                     objEditorial.setFechaCreacion(fecCre);
+                     objEditorial.setFechaRegistro(FunctionUtil.getFechaActualStringDateTime());
+                     objEditorial.setEstado(1);
+                     objEditorial.setPais(objPais);
+
+                     insertaEditorial(objEditorial);
+                 }
+
+
             }
         });
 
