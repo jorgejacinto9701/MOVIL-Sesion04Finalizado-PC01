@@ -4,10 +4,12 @@ package com.cibertec.semana04;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -19,9 +21,14 @@ import com.cibertec.semana04.service.ServicePais;
 import com.cibertec.semana04.util.ConnectionRest;
 import com.cibertec.semana04.util.FunctionUtil;
 import com.cibertec.semana04.util.ValidacionUtil;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 import retrofit2.Call;
 import retrofit2.Callback;
@@ -62,6 +69,33 @@ public class MainActivity extends AppCompatActivity {
         txtRuc = findViewById(R.id.txtRegEdiRuc);
         txtFechaCreacion = findViewById(R.id.txtRegEdiFechaCreacion);
         btnRegistrar = findViewById(R.id.btnRegEdiEnviar);
+        Locale.setDefault( new Locale("es_ES"));
+
+        txtFechaCreacion.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Calendar myCalendar= Calendar.getInstance();
+                SimpleDateFormat dateFormat=new SimpleDateFormat("yyyy-MM-dd", new Locale("es"));
+
+                new DatePickerDialog(
+                        MainActivity.this,
+                        new DatePickerDialog.OnDateSetListener() {
+                            @Override
+                            public void onDateSet(DatePicker datePicker, int year, int month , int day) {
+
+                                myCalendar.set(Calendar.YEAR, year);
+                                myCalendar.set(Calendar.MONTH,month);
+                                myCalendar.set(Calendar.DAY_OF_MONTH,day);
+
+                                txtFechaCreacion.setText(dateFormat.format(myCalendar.getTime()));
+                            }
+                        },
+                        myCalendar.get(Calendar.YEAR),
+                        myCalendar.get(Calendar.MONTH),
+                        myCalendar.get(Calendar.DAY_OF_MONTH)).show();
+            }
+        });
+
         btnRegistrar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -73,13 +107,17 @@ public class MainActivity extends AppCompatActivity {
 
 
                  if (!razSoc.matches(ValidacionUtil.TEXTO)){
-                     mensajeToast("La razón social es de 2 a 20 caracteres");
+                     //mensajeToast("La razón social es de 2 a 20 caracteres");
+                     txtRazonSoc.setError("La razón social es de 2 a 20 caracteres");
                  }else if (!dir.matches(ValidacionUtil.DIRECCION)){
-                     mensajeToast("La dirección social es de 3 a 30 caracteres");
+                     //mensajeToast("La dirección social es de 3 a 30 caracteres");
+                     txtDireccion.setError("La dirección social es de 3 a 30 caracteres");
                  }else if (!ruc.matches(ValidacionUtil.RUC)){
-                     mensajeToast("El RUC es 11 dígitos");
+                     //mensajeToast("El RUC es 11 dígitos");
+                     txtRuc.setError("El RUC es 11 dígitos");
                  }else if (!fecCre.matches(ValidacionUtil.FECHA)){
                      mensajeToast("La fecha de creación es YYYY-MM-dd");
+                     txtFechaCreacion.setError("La fecha de creación es YYYY-MM-dd");
                  }else{
                      String pais = spnPais.getSelectedItem().toString();
                      String idPais = pais.split(":")[0];
@@ -105,6 +143,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public  void insertaEditorial(Editorial objEditorial){
+           Gson gson = new GsonBuilder().setPrettyPrinting().create();
+           String json = gson.toJson(objEditorial);
+           mensajeAlert(json);
+
 
            Call<Editorial> call = serviceEditorial.insertaEditorial(objEditorial);
            call.enqueue(new Callback<Editorial>() {
